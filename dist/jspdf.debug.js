@@ -6,8 +6,8 @@
   /** @license
    *
    * jsPDF - PDF Document creation from JavaScript
-   * Version 2.1.1 Built on 2019-10-11T08:56:17.234Z
-   *                      CommitID 0dd01f177e
+   * Version 1.5.3 Built on 2020-04-02T16:53:21.178Z
+   *                      CommitID e592f8c961
    *
    * Copyright (c) 2010-2018 James Hall <james@parall.ax>, https://github.com/MrRio/jsPDF
    *               2015-2018 yWorks GmbH, http://www.yworks.com
@@ -37,6 +37,8 @@
    */
 
   function _typeof(obj) {
+    "@babel/helpers - typeof";
+
     if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
       _typeof = function (obj) {
         return typeof obj;
@@ -1420,6 +1422,10 @@
        */
 
       var Matrix = function Matrix(sx, shy, shx, sy, tx, ty) {
+        if (!(this instanceof Matrix)) {
+          return new Matrix(sx, shy, shx, sy, tx, ty);
+        }
+
         var _matrix = [];
         /**
          * @name sx
@@ -1827,8 +1833,13 @@
        */
 
 
-      API.ShadingPattern = function (type, coords, colors, gState, matrix) {
-        advancedApiModeTrap("ShadingPattern"); // see putPattern() for information how they are realized
+      API.ShadingPattern = function ShadingPattern(type, coords, colors, gState, matrix) {
+        advancedApiModeTrap("ShadingPattern");
+
+        if (!(this instanceof ShadingPattern)) {
+          return new ShadingPattern(type, coords, colors, gState, matrix);
+        } // see putPattern() for information how they are realized
+
 
         this.type = type === "axial" ? 2 : 3;
         this.coords = coords;
@@ -1851,8 +1862,13 @@
        */
 
 
-      API.TilingPattern = function (boundingBox, xStep, yStep, gState, matrix) {
+      API.TilingPattern = function TilingPattern(boundingBox, xStep, yStep, gState, matrix) {
         advancedApiModeTrap("TilingPattern");
+
+        if (!(this instanceof TilingPattern)) {
+          return new TilingPattern(boundingBox, xStep, yStep, gState, matrix);
+        }
+
         this.boundingBox = boundingBox;
         this.xStep = xStep;
         this.yStep = yStep;
@@ -3480,7 +3496,7 @@
        *
        * @memberof jsPDF#
        * @name setPage
-       * @param {number} page Switch the active page to the page number specified.
+       * @param {number} page Switch the active page to the page number specified (indexed starting at 1).
        * @example
        * doc = jsPDF()
        * doc.addPage()
@@ -5500,7 +5516,10 @@
        */
 
 
-      API.GState = function (parameters) {
+      API.GState = function GState(parameters) {
+        if (!(this instanceof GState)) {
+          return new GState(parameters);
+        }
         /**
          * @name GState#opacity
          * @type {any}
@@ -5510,6 +5529,8 @@
          * @name GState#stroke-opacity
          * @type {any}
          */
+
+
         var supported = "opacity,stroke-opacity".split(",");
 
         for (var p in parameters) {
@@ -5935,8 +5956,7 @@
        * @instance
        * @param  {string} filename The filename including extension.
        * @param  {Object} options An Object with additional options, possible options: 'returnPromise'.
-       * @returns {jsPDF} jsPDF-instance
-       */
+       * @returns {jsPDF} jsPDF-instance     */
 
 
       API.save = function (filename, options) {
@@ -6146,7 +6166,7 @@
      * @memberof jsPDF#
      */
 
-    jsPDF.version = '2.1.1';
+    jsPDF.version = '1.5.3';
 
     if (typeof define === "function" && define.amd) {
       define(function () {
@@ -8994,9 +9014,6 @@
       globalObj["AcroForm"] = {
         Appearance: AcroFormAppearance
       };
-    } else {
-      // eslint-disable-next-line no-console
-      console.warn("AcroForm-Classes are not populated into global-namespace, because the class-Names exist already. This avoids conflicts with the already used framework.");
     }
 
     jsPDFAPI.AcroFormChoiceField = AcroFormChoiceField;
@@ -11289,10 +11306,16 @@
       var padding = this.internal.__cell__.padding;
       var fontSize = this.internal.__cell__.table_font_size;
       var scaleFactor = this.internal.scaleFactor;
-      return Object.keys(model).map(function (value) {
-        return _typeof(value) === "object" ? value.text : value;
-      }).map(function (value) {
-        return this.splitTextToSize(value, columnWidths[value] - padding - padding);
+      return Object.keys(model).map(function (key) {
+        return [key, model[key]];
+      }).map(function (item) {
+        var key = item[0];
+        var value = item[1];
+        return _typeof(value) === "object" ? [key, value.text] : [key, value];
+      }).map(function (item) {
+        var key = item[0];
+        var value = item[1];
+        return this.splitTextToSize(value, columnWidths[key] - padding - padding);
       }, this).map(function (value) {
         return this.getLineHeightFactor() * value.length * fontSize / scaleFactor + padding + padding;
       }, this).reduce(function (pv, cv) {
@@ -13828,7 +13851,8 @@
         x: 0,
         y: 0,
         html2canvas: {},
-        jsPDF: {}
+        jsPDF: {},
+        backgroundColor: "transparent"
       }
     };
     /* ----- FROM / TO ----- */
@@ -13925,7 +13949,7 @@
           right: 0,
           top: 0,
           margin: "auto",
-          backgroundColor: "white"
+          backgroundColor: this.opt.backgroundColor
         }; // Set the overlay to hidden (could be changed in the future to provide a print preview).
 
         var source = cloneNode(this.prop.src, this.opt.html2canvas.javascriptEnabled);
@@ -15823,6 +15847,8 @@
         } else {
           if (doKerning && _typeof(kerning[char_code]) === "object" && !isNaN(parseInt(kerning[char_code][prior_char_code], 10))) {
             kerningValue = kerning[char_code][prior_char_code] / kerningFractionOf;
+          } else {
+            kerningValue = 0;
           }
 
           output.push((widths[char_code] || default_char_width) / widthsFractionOf + kerningValue);
